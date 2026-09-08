@@ -27,8 +27,6 @@ export class LoginComponent {
   protected readonly error = signal('');
   protected readonly submitting = signal(false);
 
-  protected readonly demoAccounts = this.auth.demoAccounts;
-
   async onSubmit(): Promise<void> {
     if (this.submitting()) {
       return;
@@ -52,12 +50,6 @@ export class LoginComponent {
     const redirectTo =
       this.route.snapshot.queryParamMap.get('redirectTo') ?? '/app/dashboard';
     void this.router.navigateByUrl(redirectTo);
-  }
-
-  useDemo(email: string, password: string): void {
-    this.email.set(email);
-    this.password.set(password);
-    this.error.set('');
   }
 
   togglePassword(): void {

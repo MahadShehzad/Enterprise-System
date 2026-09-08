@@ -1121,7 +1121,7 @@ banata hai (migration ke through).
 | `shared/ui/modal/` | `<ui-modal title (closed)>` dialog + backdrop + Esc |
 | `shared/ui/paginator/` | `<ui-paginator total pageSize [(page)]>` |
 | `layout/shell/` | Sidebar + header (user chip, sign-out) + `<router-outlet>` |
-| `features/auth/login/` | Email+password form, demo accounts list, error handling |
+| `features/auth/login/` | Email+password form, show/hide password, error handling |
 | `features/dashboard/` | Role-aware stat cards (clickable → detail modal), quick links |
 | `features/users/` | Employees table: pagination, CSV, edit/add/delete modals, RBAC |
 | `features/departments/` | Dept cards: headcount, payroll, salary breakdown, add/edit |
@@ -1147,7 +1147,7 @@ banata hai (migration ke through).
 | `server/Data/AppDbContext.cs` | `DbSet`s, `OnModelCreating` |
 | `server/Data/Seed.cs` | `HasData()` demo rows (mock-data.ts se copy) |
 | `server/Dtos/Dtos.cs` | Read DTOs, write request records, `ToDto()` mappers, `Csv()` helper |
-| `server/Controllers/AuthController.cs` | `POST /api/auth/login`, `GET /api/auth/demo-accounts` |
+| `server/Controllers/AuthController.cs` | `POST /api/auth/login` |
 | `server/Controllers/BootstrapController.cs` | `GET /api/bootstrap` — sab kuch ek shot |
 | `server/Controllers/EmployeesController.cs` | GET / POST / PUT / DELETE `/api/employees` |
 | `server/Controllers/DepartmentsController.cs` | GET / POST / PUT |

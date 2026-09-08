@@ -22,11 +22,4 @@ public class AuthController(AppDbContext db) : ControllerBase
 
         return user.ToDto();
     }
-
-    [HttpGet("demo-accounts")]
-    public async Task<ActionResult<IEnumerable<DemoAccountDto>>> DemoAccounts() =>
-        await db.Users
-            .OrderBy(u => u.Role == "Admin" ? 0 : u.Role == "Manager" ? 1 : u.Role == "Employee" ? 2 : 3)
-            .Select(u => new DemoAccountDto(u.Name, u.Email, u.Password, u.Role))
-            .ToListAsync();
 }

@@ -8,13 +8,6 @@ const SESSION_KEY = 'acme-admin:user';
 
 export type LoginResult = { ok: true } | { ok: false; error: string };
 
-export interface DemoAccount {
-  name: string;
-  email: string;
-  password: string;
-  role: Role;
-}
-
 /**
  * Authentication against the API. `login` posts credentials to the SQL Server
  * backed API; the returned user (no password) is cached in sessionStorage so a
@@ -30,8 +23,6 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._user() !== null);
   readonly role = computed<Role | null>(() => this._user()?.role ?? null);
 
-  readonly demoAccounts = signal<DemoAccount[]>([]);
-
   constructor() {
     effect(() => {
       const user = this._user();
@@ -45,8 +36,6 @@ export class AuthService {
         /* storage unavailable */
       }
     });
-
-    void this.loadDemoAccounts();
   }
 
   async login(email: string, password: string): Promise<LoginResult> {
@@ -104,17 +93,6 @@ export class AuthService {
   hasAnyRole(allowed: readonly Role[]): boolean {
     const current = this.role();
     return current !== null && roleAllowed(current, allowed);
-  }
-
-  private async loadDemoAccounts(): Promise<void> {
-    try {
-      const list = await firstValueFrom(
-        this.http.get<DemoAccount[]>('/api/auth/demo-accounts'),
-      );
-      this.demoAccounts.set(list);
-    } catch {
-      /* login screen just won't show the hint list */
-    }
   }
 
   private restore(): User | null {

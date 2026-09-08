@@ -16,8 +16,6 @@ public record UserDto(
     string Id, string Name, string Email, string Role,
     string[] TenantIds, string? EmployeeId, ProfileDto Profile);
 
-public record DemoAccountDto(string Name, string Email, string Password, string Role);
-
 public record DepartmentDto(string Id, string Name, string Lead, string TenantId);
 
 public record EmployeeDto(

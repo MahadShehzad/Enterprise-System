@@ -90,7 +90,7 @@ npm start          # ng serve  (proxies /api to :5103)
 
 ## Demo accounts
 
-Log in with a demo account (click a row on the login screen to fill it):
+Type one of these into the login form (email + password):
 
 | Email                 | Password       | Role     | Lands on / can see                                   |
 | --------------------- | -------------- | -------- | --------------------------------------------------- |
