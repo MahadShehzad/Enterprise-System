@@ -1,4 +1,6 @@
-import { Injectable, effect, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import {
   AttendanceRecord,
   Department,
@@ -9,60 +11,75 @@ import {
   Payslip,
   Project,
 } from '../models/hr.model';
-import {
-  ATTENDANCE,
-  DEPARTMENTS,
-  EMPLOYEES,
-  LEAVE_REQUESTS,
-  MEETINGS,
-  PAYSLIPS,
-  PROJECTS,
-} from '../data/mock-data';
+import { Tenant } from '../models/tenant.model';
 
-const STORAGE_KEY = 'acme-admin:data-store:v1';
-
-interface Persisted {
-  employees: Employee[];
+interface BootstrapResponse {
+  tenants: Tenant[];
   departments: Department[];
+  employees: Employee[];
   meetings: Meeting[];
   projects: Project[];
   leave: LeaveRequest[];
+  attendance: AttendanceRecord[];
+  payslips: Payslip[];
 }
 
 /**
- * Central in-memory data store. All feature pages read and mutate through here
- * so that edits, deletes and additions are reflected everywhere immediately.
- * State is persisted to sessionStorage so it survives a page refresh (but not a
- * new tab / browser – it's a mock).
+ * Loads all application data from the ASP.NET Core API (SQL Server backed) and
+ * keeps it in signals. Every mutation calls the matching endpoint and then
+ * patches the local signal with the server's response, so the UI stays in sync
+ * with the database.
  */
 @Injectable({ providedIn: 'root' })
 export class DataStoreService {
-  private readonly restored = this.restore();
+  private readonly http = inject(HttpClient);
 
-  readonly employees = signal<Employee[]>(
-    this.restored?.employees ?? clone(EMPLOYEES),
-  );
-  readonly departments = signal<Department[]>(
-    this.restored?.departments ?? clone(DEPARTMENTS),
-  );
-  readonly meetings = signal<Meeting[]>(
-    this.restored?.meetings ?? clone(MEETINGS),
-  );
-  readonly projects = signal<Project[]>(
-    this.restored?.projects ?? clone(PROJECTS),
-  );
-  readonly leave = signal<LeaveRequest[]>(
-    this.restored?.leave ?? clone(LEAVE_REQUESTS),
-  );
+  readonly tenants = signal<Tenant[]>([]);
+  readonly departments = signal<Department[]>([]);
+  readonly employees = signal<Employee[]>([]);
+  readonly meetings = signal<Meeting[]>([]);
+  readonly projects = signal<Project[]>([]);
+  readonly leave = signal<LeaveRequest[]>([]);
+  readonly attendance = signal<AttendanceRecord[]>([]);
+  readonly payslips = signal<Payslip[]>([]);
 
-  /** Attendance & payslips are read-only in this demo. */
-  readonly attendance = signal<AttendanceRecord[]>(clone(ATTENDANCE));
-  readonly payslips = signal<Payslip[]>(clone(PAYSLIPS));
+  readonly loaded = signal(false);
+  readonly error = signal('');
 
-  private nextId = signal(1);
+  private bootstrapPromise: Promise<void> | null = null;
 
-  constructor() {
-    effect(() => this.persist());
+  /** Called once from an app initializer; safe to await repeatedly. */
+  bootstrap(): Promise<void> {
+    if (!this.bootstrapPromise) {
+      this.bootstrapPromise = this.load();
+    }
+    return this.bootstrapPromise;
+  }
+
+  async reload(): Promise<void> {
+    this.bootstrapPromise = this.load();
+    return this.bootstrapPromise;
+  }
+
+  private async load(): Promise<void> {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<BootstrapResponse>('/api/bootstrap'),
+      );
+      this.tenants.set(data.tenants);
+      this.departments.set(data.departments);
+      this.employees.set(data.employees);
+      this.meetings.set(data.meetings);
+      this.projects.set(data.projects);
+      this.leave.set(data.leave);
+      this.attendance.set(data.attendance);
+      this.payslips.set(data.payslips);
+      this.error.set('');
+    } catch {
+      this.error.set('Could not reach the API. Is the server running on :5103?');
+    } finally {
+      this.loaded.set(true);
+    }
   }
 
   /* ---- lookups ---------------------------------------------------------- */
@@ -75,128 +92,136 @@ export class DataStoreService {
     return this.departments().find((d) => d.id === id)?.name ?? '—';
   }
 
-  /** Direct reports of a manager (reads the employees signal). */
   reportsOf(managerId: string): Employee[] {
     return this.employees().filter((e) => e.managerId === managerId);
   }
 
   /* ---- employees ------------------------------------------------------- */
 
-  addEmployee(input: Omit<Employee, 'id'>): void {
-    this.employees.update((list) => [
-      { ...input, id: this.mint('e') },
-      ...list,
-    ]);
+  async addEmployee(input: Omit<Employee, 'id'>): Promise<void> {
+    const created = await firstValueFrom(
+      this.http.post<Employee>('/api/employees', input),
+    );
+    this.employees.update((list) => [created, ...list]);
   }
 
-  updateEmployee(id: string, patch: Partial<Employee>): void {
+  async updateEmployee(id: string, patch: Partial<Employee>): Promise<void> {
+    const current = this.employeeById(id);
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<Employee>(`/api/employees/${id}`, { ...current, ...patch }),
+    );
     this.employees.update((list) =>
-      list.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+      list.map((e) => (e.id === id ? updated : e)),
     );
   }
 
-  deleteEmployee(id: string): void {
-    this.employees.update((list) => list.filter((e) => e.id !== id));
-    // detach anyone who reported to the removed person
+  async deleteEmployee(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(`/api/employees/${id}`));
     this.employees.update((list) =>
-      list.map((e) => (e.managerId === id ? { ...e, managerId: null } : e)),
+      list
+        .filter((e) => e.id !== id)
+        .map((e) => (e.managerId === id ? { ...e, managerId: null } : e)),
+    );
+  }
+
+  /* ---- departments -------------------------------------------------- */
+
+  async addDepartment(input: Omit<Department, 'id'>): Promise<void> {
+    const created = await firstValueFrom(
+      this.http.post<Department>('/api/departments', input),
+    );
+    this.departments.update((list) => [...list, created]);
+  }
+
+  async updateDepartment(id: string, patch: Partial<Department>): Promise<void> {
+    const current = this.departments().find((d) => d.id === id);
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<Department>(`/api/departments/${id}`, { ...current, ...patch }),
+    );
+    this.departments.update((list) =>
+      list.map((d) => (d.id === id ? updated : d)),
     );
   }
 
   /* ---- meetings ------------------------------------------------------- */
 
-  addMeeting(input: Omit<Meeting, 'id' | 'status'>): void {
-    this.meetings.update((list) => [
-      { ...input, id: this.mint('m'), status: 'Scheduled' },
-      ...list,
-    ]);
-  }
-
-  updateMeeting(id: string, patch: Partial<Meeting>): void {
-    this.meetings.update((list) =>
-      list.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+  async addMeeting(input: Omit<Meeting, 'id' | 'status'>): Promise<void> {
+    const created = await firstValueFrom(
+      this.http.post<Meeting>('/api/meetings', input),
     );
+    this.meetings.update((list) => [created, ...list]);
   }
 
-  cancelMeeting(id: string): void {
-    this.updateMeeting(id, { status: 'Cancelled' });
+  async updateMeeting(id: string, patch: Partial<Meeting>): Promise<void> {
+    const current = this.meetings().find((m) => m.id === id);
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<Meeting>(`/api/meetings/${id}`, { ...current, ...patch }),
+    );
+    this.meetings.update((list) => list.map((m) => (m.id === id ? updated : m)));
+  }
+
+  async cancelMeeting(id: string): Promise<void> {
+    const updated = await firstValueFrom(
+      this.http.post<Meeting>(`/api/meetings/${id}/cancel`, {}),
+    );
+    this.meetings.update((list) => list.map((m) => (m.id === id ? updated : m)));
   }
 
   /* ---- projects ----------------------------------------------------- */
 
-  addProject(input: Omit<Project, 'id'>): void {
-    this.projects.update((list) => [
-      { ...input, id: this.mint('p') },
-      ...list,
-    ]);
-  }
-
-  updateProject(id: string, patch: Partial<Project>): void {
-    this.projects.update((list) =>
-      list.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+  async addProject(input: Omit<Project, 'id'>): Promise<void> {
+    const created = await firstValueFrom(
+      this.http.post<Project>('/api/projects', input),
     );
+    this.projects.update((list) => [created, ...list]);
   }
 
-  deleteProject(id: string): void {
+  async updateProject(id: string, patch: Partial<Project>): Promise<void> {
+    const current = this.projects().find((p) => p.id === id);
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<Project>(`/api/projects/${id}`, { ...current, ...patch }),
+    );
+    this.projects.update((list) => list.map((p) => (p.id === id ? updated : p)));
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(`/api/projects/${id}`));
     this.projects.update((list) => list.filter((p) => p.id !== id));
   }
 
   /* ---- leave ------------------------------------------------------- */
 
-  addLeaveRequest(input: Omit<LeaveRequest, 'id' | 'status'>): void {
-    this.leave.update((list) => [
-      { ...input, id: this.mint('l'), status: 'Pending' },
-      ...list,
-    ]);
+  async addLeaveRequest(input: Omit<LeaveRequest, 'id' | 'status'>): Promise<void> {
+    const created = await firstValueFrom(
+      this.http.post<LeaveRequest>('/api/leave', input),
+    );
+    this.leave.update((list) => [created, ...list]);
   }
 
-  setLeaveStatus(id: string, status: LeaveStatus): void {
-    this.leave.update((list) =>
-      list.map((l) => (l.id === id ? { ...l, status } : l)),
+  async setLeaveStatus(id: string, status: LeaveStatus): Promise<void> {
+    const updated = await firstValueFrom(
+      this.http.put<LeaveRequest>(`/api/leave/${id}/status`, { status }),
+    );
+    this.leave.update((list) => list.map((l) => (l.id === id ? updated : l)));
+  }
+
+  /* ---- tenants ---------------------------------------------------- */
+
+  async setTenantFeatures(
+    tenantId: string,
+    enabledFeatures: string[],
+  ): Promise<void> {
+    const updated = await firstValueFrom(
+      this.http.put<Tenant>(`/api/tenants/${tenantId}/features`, {
+        enabledFeatures,
+      }),
+    );
+    this.tenants.update((list) =>
+      list.map((t) => (t.id === tenantId ? updated : t)),
     );
   }
-
-  resetToSeed(): void {
-    this.employees.set(clone(EMPLOYEES));
-    this.departments.set(clone(DEPARTMENTS));
-    this.meetings.set(clone(MEETINGS));
-    this.projects.set(clone(PROJECTS));
-    this.leave.set(clone(LEAVE_REQUESTS));
-  }
-
-  /* ---- internals -------------------------------------------------- */
-
-  private mint(prefix: string): string {
-    const n = this.nextId();
-    this.nextId.set(n + 1);
-    return `${prefix}-new-${Date.now().toString(36)}-${n}`;
-  }
-
-  private persist(): void {
-    const data: Persisted = {
-      employees: this.employees(),
-      departments: this.departments(),
-      meetings: this.meetings(),
-      projects: this.projects(),
-      leave: this.leave(),
-    };
-    try {
-      globalThis.sessionStorage?.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      /* storage unavailable */
-    }
-  }
-
-  private restore(): Persisted | null {
-    try {
-      const raw = globalThis.sessionStorage?.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as Persisted) : null;
-    } catch {
-      return null;
-    }
-  }
-}
-
-function clone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
 }

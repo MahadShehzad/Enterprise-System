@@ -1,48 +1,43 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Role, roleAllowed, roleSatisfies } from '../models/role.model';
 import { EditableProfile, User } from '../models/user.model';
-import { USERS } from '../data/mock-data';
 
-const SESSION_KEY = 'acme-admin:user-id';
-const OVERRIDES_KEY = 'acme-admin:user-overrides';
+const SESSION_KEY = 'acme-admin:user';
 
 export type LoginResult = { ok: true } | { ok: false; error: string };
 
-type UserOverride = Partial<Pick<User, 'name' | 'email'>> & {
-  profile?: Partial<User['profile']>;
-};
+export interface DemoAccount {
+  name: string;
+  email: string;
+  password: string;
+  role: Role;
+}
 
 /**
- * Mocked authentication / role provider. No backend – `login` matches the
- * email + password against the seeded demo accounts. Profile edits and the
- * uploaded avatar are kept as per-user overrides in sessionStorage so they
- * survive a refresh.
+ * Authentication against the API. `login` posts credentials to the SQL Server
+ * backed API; the returned user (no password) is cached in sessionStorage so a
+ * refresh keeps you signed in without another round-trip.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly overrides = signal<Record<string, UserOverride>>(
-    this.restoreOverrides(),
-  );
+  private readonly http = inject(HttpClient);
 
-  private readonly _user = signal<User | null>(this.restoreUser());
+  private readonly _user = signal<User | null>(this.restore());
 
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._user() !== null);
   readonly role = computed<Role | null>(() => this._user()?.role ?? null);
 
-  readonly demoAccounts = USERS.map((u) => ({
-    name: u.name,
-    email: u.email,
-    password: u.password,
-    role: u.role,
-  }));
+  readonly demoAccounts = signal<DemoAccount[]>([]);
 
   constructor() {
     effect(() => {
       const user = this._user();
       try {
         if (user) {
-          globalThis.sessionStorage?.setItem(SESSION_KEY, user.id);
+          globalThis.sessionStorage?.setItem(SESSION_KEY, JSON.stringify(user));
         } else {
           globalThis.sessionStorage?.removeItem(SESSION_KEY);
         }
@@ -51,61 +46,54 @@ export class AuthService {
       }
     });
 
-    effect(() => {
-      try {
-        globalThis.sessionStorage?.setItem(
-          OVERRIDES_KEY,
-          JSON.stringify(this.overrides()),
-        );
-      } catch {
-        /* storage unavailable */
-      }
-    });
+    void this.loadDemoAccounts();
   }
 
-  login(email: string, password: string): LoginResult {
-    const normalised = email.trim().toLowerCase();
-    const match = USERS.find((u) => u.email.toLowerCase() === normalised);
-    if (!match) {
-      return { ok: false, error: 'No account found for that email address.' };
+  async login(email: string, password: string): Promise<LoginResult> {
+    try {
+      const user = await firstValueFrom(
+        this.http.post<User>('/api/auth/login', { email, password }),
+      );
+      this._user.set(user);
+      return { ok: true };
+    } catch (err: unknown) {
+      const message =
+        (err as { error?: { error?: string } })?.error?.error ??
+        'Could not sign in. Is the API running?';
+      return { ok: false, error: message };
     }
-    if (match.password !== password) {
-      return { ok: false, error: 'Incorrect password. Please try again.' };
-    }
-    this._user.set(this.applyOverride(match));
-    return { ok: true };
   }
 
   logout(): void {
     this._user.set(null);
   }
 
-  /** Persist edited profile fields for the current user. */
-  updateProfile(patch: EditableProfile): void {
+  async updateProfile(patch: EditableProfile): Promise<void> {
     const current = this._user();
-    if (!current) {
-      return;
-    }
-    this.mergeOverride(current.id, {
-      name: patch.name,
-      email: patch.email,
-      profile: {
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<User>(`/api/users/${current.id}/profile`, {
+        name: patch.name,
+        email: patch.email,
         title: patch.title,
         department: patch.department,
         phone: patch.phone,
         location: patch.location,
         bio: patch.bio,
-      },
-    });
+      }),
+    );
+    this._user.set(updated);
   }
 
-  /** Store an uploaded avatar (data URL) for the current user. */
-  setAvatar(dataUrl: string): void {
+  async setAvatar(dataUrl: string): Promise<void> {
     const current = this._user();
-    if (!current) {
-      return;
-    }
-    this.mergeOverride(current.id, { profile: { avatarUrl: dataUrl } });
+    if (!current) return;
+    const updated = await firstValueFrom(
+      this.http.put<User>(`/api/users/${current.id}/avatar`, {
+        avatarUrl: dataUrl,
+      }),
+    );
+    this._user.set(updated);
   }
 
   hasMinRole(required: Role): boolean {
@@ -118,55 +106,23 @@ export class AuthService {
     return current !== null && roleAllowed(current, allowed);
   }
 
-  /* ---- internals ---------------------------------------------------- */
-
-  private mergeOverride(userId: string, patch: UserOverride): void {
-    this.overrides.update((all) => {
-      const prev = all[userId] ?? {};
-      return {
-        ...all,
-        [userId]: {
-          ...prev,
-          ...patch,
-          profile: { ...prev.profile, ...patch.profile },
-        },
-      };
-    });
-    const base = USERS.find((u) => u.id === userId);
-    if (base) {
-      this._user.set(this.applyOverride(base));
-    }
-  }
-
-  private applyOverride(base: User): User {
-    const ov = this.overrides()[base.id];
-    if (!ov) {
-      return { ...base, profile: { ...base.profile } };
-    }
-    return {
-      ...base,
-      name: ov.name ?? base.name,
-      email: ov.email ?? base.email,
-      profile: { ...base.profile, ...ov.profile },
-    };
-  }
-
-  private restoreUser(): User | null {
+  private async loadDemoAccounts(): Promise<void> {
     try {
-      const id = globalThis.sessionStorage?.getItem(SESSION_KEY);
-      const base = USERS.find((u) => u.id === id);
-      return base ? this.applyOverride(base) : null;
+      const list = await firstValueFrom(
+        this.http.get<DemoAccount[]>('/api/auth/demo-accounts'),
+      );
+      this.demoAccounts.set(list);
+    } catch {
+      /* login screen just won't show the hint list */
+    }
+  }
+
+  private restore(): User | null {
+    try {
+      const raw = globalThis.sessionStorage?.getItem(SESSION_KEY);
+      return raw ? (JSON.parse(raw) as User) : null;
     } catch {
       return null;
-    }
-  }
-
-  private restoreOverrides(): Record<string, UserOverride> {
-    try {
-      const raw = globalThis.sessionStorage?.getItem(OVERRIDES_KEY);
-      return raw ? (JSON.parse(raw) as Record<string, UserOverride>) : {};
-    } catch {
-      return {};
     }
   }
 }

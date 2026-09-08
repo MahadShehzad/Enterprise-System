@@ -15,8 +15,6 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  /** Mock credential – checked by AuthService.login. Never do this in real code. */
-  password: string;
   role: Role;
   /** Tenants this user belongs to. */
   tenantIds: string[];

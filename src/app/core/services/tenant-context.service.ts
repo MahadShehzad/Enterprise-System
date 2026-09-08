@@ -1,27 +1,18 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FeatureKey, Tenant } from '../models/tenant.model';
-import { TENANTS } from '../data/mock-data';
 import { AuthService } from './auth.service';
+import { DataStoreService } from './data-store.service';
 
 /**
- * Holds the currently active tenant and its runtime configuration. Every
- * tenant-aware service should read `activeTenant()` rather than taking a tenant
- * id as a parameter.
+ * Holds the currently active tenant and its runtime configuration. Tenants come
+ * from the API (SQL Server); feature toggles are persisted back through it.
  */
 @Injectable({ providedIn: 'root' })
 export class TenantContextService {
   private readonly auth = inject(AuthService);
+  private readonly store = inject(DataStoreService);
   private readonly doc = inject(DOCUMENT);
-
-  /** Mutable working copy so feature toggles can drive dynamic module loading. */
-  private readonly _tenants = signal<Tenant[]>(
-    TENANTS.map((t) => ({
-      ...t,
-      branding: { ...t.branding },
-      enabledFeatures: [...t.enabledFeatures],
-    })),
-  );
 
   private readonly _activeTenantId = signal<string | null>(null);
 
@@ -31,19 +22,16 @@ export class TenantContextService {
     if (!user) {
       return [];
     }
-    return this._tenants().filter((t) => user.tenantIds.includes(t.id));
+    return this.store.tenants().filter((t) => user.tenantIds.includes(t.id));
   });
 
   readonly activeTenant = computed<Tenant | null>(() => {
     const tenants = this.availableTenants();
     const id = this._activeTenantId();
-    // Fall back to the first available tenant so route guards that run before
-    // the sync effect fires still see a valid tenant.
     return tenants.find((t) => t.id === id) ?? tenants[0] ?? null;
   });
 
   constructor() {
-    // Keep the active tenant valid as the user (and thus their tenants) changes.
     effect(() => {
       const tenants = this.availableTenants();
       const current = this._activeTenantId();
@@ -58,12 +46,11 @@ export class TenantContextService {
       }
     });
 
-    // Apply tenant branding to a CSS custom property.
     effect(() => {
       const tenant = this.activeTenant();
       this.doc.documentElement.style.setProperty(
         '--color-brand',
-        tenant?.branding.primary ?? 'var(--c-mauve)',
+        tenant?.branding.primary ?? 'var(--c-clay)',
       );
     });
   }
@@ -74,30 +61,22 @@ export class TenantContextService {
     }
   }
 
-  /** True when the active tenant has purchased/enabled a feature. */
   isFeatureEnabled(feature: FeatureKey): boolean {
     return this.activeTenant()?.enabledFeatures.includes(feature) ?? false;
   }
 
-  /** Enable/disable a feature for the active tenant at runtime. */
+  /** Enable/disable a feature for the active tenant (persisted via the API). */
   toggleFeature(feature: FeatureKey, enabled: boolean): void {
-    const activeId = this.activeTenant()?.id;
-    if (!activeId || feature === 'dashboard') {
+    const tenant = this.activeTenant();
+    if (!tenant || feature === 'dashboard') {
       return; // dashboard is always on
     }
-    this._tenants.update((tenants) =>
-      tenants.map((t) => {
-        if (t.id !== activeId) {
-          return t;
-        }
-        const set = new Set(t.enabledFeatures);
-        if (enabled) {
-          set.add(feature);
-        } else {
-          set.delete(feature);
-        }
-        return { ...t, enabledFeatures: [...set] };
-      }),
-    );
+    const set = new Set(tenant.enabledFeatures);
+    if (enabled) {
+      set.add(feature);
+    } else {
+      set.delete(feature);
+    }
+    void this.store.setTenantFeatures(tenant.id, [...set]);
   }
 }

@@ -29,7 +29,7 @@ export class LoginComponent {
 
   protected readonly demoAccounts = this.auth.demoAccounts;
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.submitting()) {
       return;
     }
@@ -41,20 +41,17 @@ export class LoginComponent {
     }
 
     this.submitting.set(true);
-    // Simulate a network round-trip so the loading state is visible.
-    setTimeout(() => {
-      const result = this.auth.login(this.email(), this.password());
-      this.submitting.set(false);
+    const result = await this.auth.login(this.email(), this.password());
+    this.submitting.set(false);
 
-      if (!result.ok) {
-        this.error.set(result.error);
-        return;
-      }
+    if (!result.ok) {
+      this.error.set(result.error);
+      return;
+    }
 
-      const redirectTo =
-        this.route.snapshot.queryParamMap.get('redirectTo') ?? '/app/dashboard';
-      void this.router.navigateByUrl(redirectTo);
-    }, 550);
+    const redirectTo =
+      this.route.snapshot.queryParamMap.get('redirectTo') ?? '/app/dashboard';
+    void this.router.navigateByUrl(redirectTo);
   }
 
   useDemo(email: string, password: string): void {

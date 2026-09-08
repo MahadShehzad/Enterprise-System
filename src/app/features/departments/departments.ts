@@ -81,22 +81,17 @@ export class DepartmentsComponent {
       return;
     }
     if (form.id) {
-      this.store.departments.update((list) =>
-        list.map((d) =>
-          d.id === form.id ? { ...d, name: form.name.trim(), lead: form.lead } : d,
-        ),
-      );
+      void this.store.updateDepartment(form.id, {
+        name: form.name.trim(),
+        lead: form.lead,
+      });
       this.toast.set(`Updated ${form.name}.`);
     } else {
-      this.store.departments.update((list) => [
-        ...list,
-        {
-          id: `dept-new-${Date.now().toString(36)}`,
-          name: form.name.trim(),
-          lead: form.lead || '—',
-          tenantId: this.tenantId(),
-        },
-      ]);
+      void this.store.addDepartment({
+        name: form.name.trim(),
+        lead: form.lead || '—',
+        tenantId: this.tenantId(),
+      });
       this.toast.set(`Added ${form.name}.`);
     }
     this.editing.set(null);

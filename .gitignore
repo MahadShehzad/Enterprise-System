@@ -39,6 +39,11 @@ testem.log
 /typings
 __screenshots__/
 
+# .NET API (server/)
+server/bin/
+server/obj/
+server/appsettings.*.local.json
+
 # System files
 .DS_Store
 Thumbs.db

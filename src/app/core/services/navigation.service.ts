@@ -1,6 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { NavItem } from '../models/nav-item.model';
-import { NAV_CATALOGUE } from '../data/mock-data';
+import { NAV_CATALOGUE } from '../data/nav-catalogue';
 import { AuthService } from './auth.service';
 import { TenantContextService } from './tenant-context.service';
 
