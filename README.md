@@ -42,7 +42,12 @@ npm run dev        # API (:5103) + Angular (:4200) together  -> http://localhost
 # or separately:
 npm run api        # dotnet run --project server
 npm start          # ng serve  (proxies /api to :5103)
+npm run stop       # free ports 4200 + 5103 if something is stuck
 ```
+
+`dev` / `start` / `api` each free their own port first (`kill-port` in a
+`pre*` hook), so a leftover `ng serve` process no longer causes
+"Port 4200 already in use".
 
 ## What works
 

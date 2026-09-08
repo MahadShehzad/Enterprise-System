@@ -1187,10 +1187,13 @@ sqlcmd -S "localhost\SQLEXPRESS" -d AcmeAdmin -E -Q "SELECT * FROM Employees"
 # Git
 git add -A && git commit -m "message" && git push
 
-# Port stuck ho jaye
-# PowerShell:
-Get-NetTCPConnection -LocalPort 4200,5103 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+# Ports free karo (agar "Port 4200 already in use" aaye)
+npm run stop        # = kill-port 4200 5103
 ```
+
+> **Note:** `npm run dev`, `npm start` aur `npm run api` ab har baar apna port
+> khud free karte hain (`predev` / `prestart` / `preapi` hooks `kill-port`
+> chalate hain). "Port already in use" wala error is se khatm ho jaana chahiye.
 
 ---
 
