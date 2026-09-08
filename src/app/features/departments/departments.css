@@ -1,0 +1,71 @@
+:host {
+  display: block;
+}
+
+.dep__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dep__grid {
+  display: grid;
+  gap: 1.35rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.dep__stats {
+  display: flex;
+  gap: 1.5rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dep__stats > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.dep__stat-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.dep__stat-label {
+  font-size: 0.82rem;
+  color: var(--color-ink-55);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dep__people {
+  list-style: none;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dep__people li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 0.75rem;
+  font-size: 0.94rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--color-line);
+}
+
+.dep__people li .muted {
+  grid-column: 1;
+  font-size: 0.84rem;
+}
+
+.dep__people li .ta-end {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-weight: 700;
+}

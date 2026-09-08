@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  animation: fade-up 0.5s var(--ease-out) both;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition:
+    transform 0.22s var(--ease-out),
+    box-shadow 0.22s var(--ease-out);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.card__head {
+  padding: 1.15rem 1.4rem 0.85rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 750;
+}
+
+.card__subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  color: var(--color-ink-70);
+}
+
+.card__body--padded {
+  padding: 1.4rem;
+}

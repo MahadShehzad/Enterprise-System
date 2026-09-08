@@ -1,0 +1,38 @@
+<div class="shell">
+  <ui-sidebar
+    class="shell__sidebar"
+    [items]="nav.visibleItems()"
+    [tenants]="tenantCtx.availableTenants()"
+    [activeTenant]="tenantCtx.activeTenant()"
+    (tenantChange)="onTenantChange($event)"
+  />
+
+  <div class="shell__main">
+    <header class="shell__header">
+      <div class="shell__header-left">
+        <span class="shell__tenant-name">{{ tenantCtx.activeTenant()?.name ?? 'No tenant' }}</span>
+      </div>
+
+      <div class="shell__header-right">
+        @if (user(); as u) {
+          <a class="shell__user" routerLink="/app/profile" title="View your profile">
+            @if (u.profile.avatarUrl) {
+              <img class="shell__avatar shell__avatar--img" [src]="u.profile.avatarUrl" alt="" />
+            } @else {
+              <span class="shell__avatar" aria-hidden="true">{{ initialsOf(u.name) }}</span>
+            }
+            <span class="shell__user-meta">
+              <span class="shell__user-name">{{ u.name }}</span>
+              <ui-badge tone="brand">{{ u.role }}</ui-badge>
+            </span>
+          </a>
+          <ui-button variant="ghost" (pressed)="logout()">Sign out</ui-button>
+        }
+      </div>
+    </header>
+
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

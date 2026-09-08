@@ -1,0 +1,112 @@
+<div class="page">
+  <header class="page__header team__header">
+    <div>
+      <h1 class="page__title">My team</h1>
+      <p class="page__subtitle">
+        {{ team().length }} direct reports · {{ money(totalCost()) }} combined annual cost
+      </p>
+    </div>
+    <ui-button variant="ghost" (pressed)="exportRoster()">Export roster CSV</ui-button>
+  </header>
+
+  @if (toast()) {
+    <p class="toast" role="status">{{ toast() }}</p>
+  }
+
+  <ui-card heading="Team roster" [padded]="false">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Position</th><th>Department</th>
+            <th>Status</th><th class="ta-end">Salary</th><th class="ta-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of pageItems(); track e.id) {
+            <tr>
+              <td class="strong">{{ e.name }}</td>
+              <td>{{ e.position }}</td>
+              <td>{{ deptName(e.departmentId) }}</td>
+              <td>
+                <ui-badge
+                  [tone]="e.status === 'Active' ? 'success' : e.status === 'Invited' ? 'warning' : 'danger'"
+                >{{ e.status }}</ui-badge>
+              </td>
+              <td class="ta-end">{{ money(e.salary) }}</td>
+              <td class="ta-end">
+                <ui-button variant="ghost" (pressed)="startEdit(e)">Manage</ui-button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td class="table__empty" colspan="6">No direct reports.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <ui-paginator [total]="team().length" [pageSize]="pageSize" [(page)]="page" />
+  </ui-card>
+
+  <h2 class="section-title">Leave approvals</h2>
+  <ui-card [padded]="false">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Employee</th><th>Type</th><th>Dates</th><th>Reason</th><th class="ta-end">Decision</th></tr>
+        </thead>
+        <tbody>
+          @for (l of leavePageItems(); track l.id) {
+            <tr>
+              <td class="strong">{{ empName(l.employeeId) }}</td>
+              <td>{{ l.type }}</td>
+              <td>{{ l.from }} → {{ l.to }} ({{ l.days }}d)</td>
+              <td class="muted">{{ l.reason }}</td>
+              <td class="ta-end">
+                <div class="row-actions">
+                  <ui-button variant="ghost" (pressed)="decideLeave(l.id, false)">Reject</ui-button>
+                  <ui-button (pressed)="decideLeave(l.id, true)">Approve</ui-button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td class="table__empty" colspan="5">No pending leave requests.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <ui-paginator
+      [total]="pendingLeave().length"
+      [pageSize]="leavePageSize"
+      [(page)]="leavePage"
+    />
+  </ui-card>
+</div>
+
+@if (editing(); as f) {
+  <ui-modal title="Manage team member" (closed)="editing.set(null)">
+    <form class="form" (ngSubmit)="save()">
+      <label class="field">
+        <span class="field__label">Position</span>
+        <input class="input" name="position" [(ngModel)]="f.position" />
+      </label>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Salary (PKR / year)</span>
+          <input class="input" name="salary" type="number" [(ngModel)]="f.salary" />
+        </label>
+        <label class="field">
+          <span class="field__label">Status</span>
+          <select class="select" name="status" [(ngModel)]="f.status">
+            <option value="Active">Active</option>
+            <option value="Invited">Invited</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </label>
+      </div>
+    </form>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(null)">Cancel</ui-button>
+      <ui-button (pressed)="save()">Save changes</ui-button>
+    </div>
+  </ui-modal>
+}

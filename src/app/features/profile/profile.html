@@ -1,0 +1,132 @@
+@if (user(); as u) {
+  <div class="page profile">
+    <header class="page__header">
+      <h1 class="page__title">My profile</h1>
+      <p class="page__subtitle">Your account details and workspace access.</p>
+    </header>
+
+    @if (toast()) {
+      <p class="profile__toast" role="status">{{ toast() }}</p>
+    }
+
+    <div class="profile__hero">
+      <div class="profile__avatar-wrap">
+        @if (u.profile.avatarUrl) {
+          <img class="profile__avatar-img" [src]="u.profile.avatarUrl" alt="Your profile photo" />
+        } @else {
+          <span class="profile__avatar" aria-hidden="true">{{ initials() }}</span>
+        }
+        <button type="button" class="profile__avatar-btn" (click)="pickPhoto()">
+          Change photo
+        </button>
+      </div>
+
+      <div class="profile__hero-text">
+        <h2 class="profile__name">{{ u.name }}</h2>
+        <p class="profile__title">{{ u.profile.title }} · {{ u.profile.department }}</p>
+        <div class="profile__tags">
+          <ui-badge [tone]="roleTone()">{{ u.role }}</ui-badge>
+          <ui-badge tone="neutral">Joined {{ u.profile.joinedAt }}</ui-badge>
+        </div>
+        <div class="profile__hero-actions">
+          <ui-button (pressed)="openEdit()">Edit profile</ui-button>
+          @if (u.profile.avatarUrl) {
+            <ui-button variant="ghost" (pressed)="removePhoto()">Remove photo</ui-button>
+          }
+        </div>
+        @if (photoError()) {
+          <p class="profile__photo-error" role="alert">{{ photoError() }}</p>
+        }
+      </div>
+    </div>
+
+    <input
+      #fileInput
+      type="file"
+      accept="image/*"
+      class="profile__file"
+      (change)="onPhotoSelected($event)"
+      hidden
+    />
+
+    <div class="profile__grid">
+      <ui-card heading="Contact details">
+        <dl class="profile__list">
+          <div><dt>Email</dt><dd>{{ u.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ u.profile.phone }}</dd></div>
+          <div><dt>Location</dt><dd>{{ u.profile.location }}</dd></div>
+          <div><dt>Department</dt><dd>{{ u.profile.department }}</dd></div>
+        </dl>
+      </ui-card>
+
+      <ui-card heading="About">
+        <p class="profile__bio">{{ u.profile.bio }}</p>
+        <ui-button variant="ghost" (pressed)="openEdit()">Edit details</ui-button>
+      </ui-card>
+
+      <ui-card heading="Workspace access" subheading="Tenants linked to your account">
+        <ul class="profile__tenants">
+          @for (tenant of tenants(); track tenant.id) {
+            <li class="profile__tenant">
+              <span
+                class="profile__tenant-badge"
+                [style.background]="tenant.branding.primary"
+                aria-hidden="true"
+              >{{ tenant.branding.shortName }}</span>
+              <span class="profile__tenant-name">{{ tenant.name }}</span>
+              <span class="profile__tenant-count">
+                {{ tenant.enabledFeatures.length }} modules
+              </span>
+            </li>
+          }
+        </ul>
+      </ui-card>
+    </div>
+  </div>
+}
+
+@if (editing() && form(); as f) {
+  <ui-modal title="Edit profile" (closed)="editing.set(false)">
+    <form class="form" (ngSubmit)="saveEdit()">
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Full name</span>
+          <input class="input" name="name" [(ngModel)]="f.name" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input class="input" name="email" type="email" [(ngModel)]="f.email" required />
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Job title</span>
+          <input class="input" name="title" [(ngModel)]="f.title" />
+        </label>
+        <label class="field">
+          <span class="field__label">Department</span>
+          <input class="input" name="department" [(ngModel)]="f.department" />
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Phone</span>
+          <input class="input" name="phone" [(ngModel)]="f.phone" />
+        </label>
+        <label class="field">
+          <span class="field__label">Location</span>
+          <input class="input" name="location" [(ngModel)]="f.location" />
+        </label>
+      </div>
+      <label class="field">
+        <span class="field__label">Bio</span>
+        <textarea class="textarea" name="bio" [(ngModel)]="f.bio"></textarea>
+      </label>
+    </form>
+
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(false)">Cancel</ui-button>
+      <ui-button (pressed)="saveEdit()">Save changes</ui-button>
+    </div>
+  </ui-modal>
+}

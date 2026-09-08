@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+.team__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

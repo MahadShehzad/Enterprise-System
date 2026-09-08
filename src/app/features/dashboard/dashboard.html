@@ -1,0 +1,78 @@
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Dashboard</h1>
+    <p class="page__subtitle">
+      Overview for <strong>{{ tenant()?.name }}</strong> — signed in as
+      {{ user()?.name }} ({{ user()?.role }})
+    </p>
+  </header>
+
+  <div class="grid grid--stats">
+    @for (stat of stats(); track stat.key) {
+      <ui-stat-card
+        [label]="stat.label"
+        [value]="stat.value"
+        [icon]="stat.icon"
+        [delta]="stat.delta"
+        [trend]="stat.trend"
+        [accent]="stat.accent"
+        clickable
+        (activated)="show(stat)"
+      />
+    }
+  </div>
+
+  <div class="dashboard__row">
+    <ui-card heading="Recent activity" subheading="Across the current tenant">
+      <ul class="dashboard__activity">
+        @for (item of activity(); track item.what) {
+          <li class="dashboard__activity-item">
+            <span class="dashboard__activity-dot" aria-hidden="true"></span>
+            <span><strong>{{ item.who }}</strong> {{ item.what }}</span>
+            <span class="dashboard__activity-when">{{ item.when }}</span>
+          </li>
+        }
+      </ul>
+    </ui-card>
+
+    <ui-card heading="Quick links" subheading="Jump to what your role can do">
+      <div class="dashboard__links">
+        <a class="dashboard__link" routerLink="/app/profile">My profile</a>
+        <a class="dashboard__link" *appHasRole="'Admin'" routerLink="/app/departments">Departments</a>
+        <a class="dashboard__link" *appHasRole="['Manager', 'Admin']" routerLink="/app/users">Employees</a>
+        <a class="dashboard__link" *appHasRole="'Manager'" routerLink="/app/team">My team</a>
+        <a class="dashboard__link" *appHasRole="['Manager', 'Admin']" routerLink="/app/projects">Projects</a>
+        <a class="dashboard__link" *appHasRole="['Manager', 'Admin']" routerLink="/app/meetings">Meetings</a>
+        <a class="dashboard__link" *appHasRole="'Employee'" routerLink="/app/me/attendance">My attendance</a>
+        <a class="dashboard__link" *appHasRole="'Employee'" routerLink="/app/me/leave">My leave</a>
+        <a class="dashboard__link" *appHasRole="'Employee'" routerLink="/app/me/pay">My payslips</a>
+      </div>
+
+      <div *appHasRole="'Viewer'" class="dashboard__note">
+        <strong>Viewer:</strong> read-only access. Administrative actions are hidden.
+      </div>
+    </ui-card>
+  </div>
+</div>
+
+@if (openStat(); as stat) {
+  <ui-modal [title]="stat.detailTitle" (closed)="openStat.set(null)">
+    <p class="dashboard__detail-lead">
+      {{ stat.label }} — <strong>{{ stat.value }}</strong>
+    </p>
+    <div class="table-wrap">
+      <table class="table">
+        <tbody>
+          @for (row of stat.rows; track row.label) {
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="ta-end strong">{{ row.value }}</td>
+            </tr>
+          } @empty {
+            <tr><td class="table__empty">Nothing to show yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </ui-modal>
+}

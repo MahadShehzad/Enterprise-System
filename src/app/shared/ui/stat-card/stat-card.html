@@ -1,0 +1,22 @@
+<article class="stat stat--{{ accent() }}">
+  <div class="stat__top">
+    <span class="stat__label">{{ label() }}</span>
+    @if (icon()) {
+      <span class="stat__icon" aria-hidden="true">{{ icon() }}</span>
+    }
+  </div>
+  <div class="stat__value">{{ value() }}</div>
+  @if (delta()) {
+    <div
+      class="stat__delta"
+      [class.stat__delta--up]="trend() === 'up'"
+      [class.stat__delta--down]="trend() === 'down'"
+    >
+      <span aria-hidden="true">{{ trendSymbol() }}</span>
+      <span>{{ delta() }}</span>
+    </div>
+  }
+  @if (clickable()) {
+    <span class="stat__more" aria-hidden="true">View details →</span>
+  }
+</article>

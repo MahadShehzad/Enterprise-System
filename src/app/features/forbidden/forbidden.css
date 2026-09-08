@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.forbidden {
+  max-width: 520px;
+}
+
+.forbidden__text {
+  margin: 0 0 1rem;
+  color: var(--color-ink-70);
+}

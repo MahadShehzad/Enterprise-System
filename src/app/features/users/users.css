@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.users__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.users__toast {
+  margin: 0 0 1.1rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: var(--radius-sm);
+  background: var(--c-cream);
+  color: #6f4d30;
+  font-weight: 650;
+  border: 1px solid #dcc7a4;
+  animation: slide-in-right 0.3s var(--ease-out) both;
+}
+
+.users__row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.users__readonly {
+  font-size: 0.88rem;
+  color: var(--color-ink-55);
+  font-style: italic;
+}
+
+.users__hint {
+  margin-top: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  color: var(--color-ink-70);
+}

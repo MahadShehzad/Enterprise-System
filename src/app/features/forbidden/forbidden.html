@@ -1,0 +1,9 @@
+<div class="page forbidden">
+  <ui-card heading="403 — Not allowed">
+    <p class="forbidden__text">
+      Your current role (<strong>{{ role() }}</strong>) doesn't have access to that
+      page, or the active tenant doesn't have that module enabled.
+    </p>
+    <ui-button (pressed)="goHome()">Back to dashboard</ui-button>
+  </ui-card>
+</div>

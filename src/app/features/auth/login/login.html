@@ -1,0 +1,94 @@
+<div class="login">
+  <div class="login__art" aria-hidden="true">
+    <div class="login__art-inner">
+      <span class="login__art-logo">◆</span>
+      <h2 class="login__art-title">Acme Admin</h2>
+      <p class="login__art-copy">
+        One control panel for every tenant — roles, reporting and team management
+        in a single place.
+      </p>
+      <ul class="login__art-points">
+        <li>Role-based access control</li>
+        <li>Multi-tenant switching</li>
+        <li>Configurable modules</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="login__panel">
+    <form class="login__form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="login__brand">
+        <span class="login__logo" aria-hidden="true">◆</span>
+        <span>Acme Admin</span>
+      </div>
+      <h1 class="login__title">Welcome back</h1>
+      <p class="login__lead">Sign in with your email and password to continue.</p>
+
+      @if (error()) {
+        <p class="login__error" role="alert">{{ error() }}</p>
+      }
+
+      <label class="login__field">
+        <span class="login__label">Email address</span>
+        <input
+          class="login__input"
+          type="email"
+          name="email"
+          autocomplete="username"
+          placeholder="you@acme.pk"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          [disabled]="submitting()"
+        />
+      </label>
+
+      <label class="login__field">
+        <span class="login__label">Password</span>
+        <span class="login__password">
+          <input
+            class="login__input"
+            [type]="showPassword() ? 'text' : 'password'"
+            name="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            [disabled]="submitting()"
+          />
+          <button
+            type="button"
+            class="login__toggle"
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          >
+            {{ showPassword() ? 'Hide' : 'Show' }}
+          </button>
+        </span>
+      </label>
+
+      <ui-button type="submit" [fullWidth]="true" [loading]="submitting()">
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+      </ui-button>
+    </form>
+
+    <div class="login__demo">
+      <p class="login__demo-title">Demo accounts — click to fill</p>
+      <ul class="login__demo-list">
+        @for (account of demoAccounts; track account.email) {
+          <li>
+            <button
+              type="button"
+              class="login__demo-item"
+              (click)="useDemo(account.email, account.password)"
+            >
+              <span class="login__demo-role">{{ account.role }}</span>
+              <span class="login__demo-cred">
+                {{ account.email }} · {{ account.password }}
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</div>

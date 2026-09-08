@@ -1,0 +1,32 @@
+@if (pageCount() > 1) {
+  <nav class="pg" aria-label="Pagination">
+    <span class="pg__info">{{ from() }}–{{ to() }} of {{ total() }}</span>
+    <div class="pg__controls">
+      <button
+        type="button"
+        class="pg__btn"
+        [disabled]="current() === 1"
+        (click)="go(current() - 1)"
+        aria-label="Previous page"
+      >‹</button>
+
+      @for (n of pages(); track n) {
+        <button
+          type="button"
+          class="pg__btn"
+          [class.pg__btn--active]="n === current()"
+          [attr.aria-current]="n === current() ? 'page' : null"
+          (click)="go(n)"
+        >{{ n }}</button>
+      }
+
+      <button
+        type="button"
+        class="pg__btn"
+        [disabled]="current() === pageCount()"
+        (click)="go(current() + 1)"
+        aria-label="Next page"
+      >›</button>
+    </div>
+  </nav>
+}

@@ -1,0 +1,121 @@
+<div class="page">
+  <header class="page__header mt__header">
+    <div>
+      <h1 class="page__title">Meetings</h1>
+      <p class="page__subtitle">Schedule, reschedule and cancel your meetings.</p>
+    </div>
+    <ui-button (pressed)="startAdd()">Schedule meeting</ui-button>
+  </header>
+
+  @if (toast()) {
+    <p class="toast" role="status">{{ toast() }}</p>
+  }
+
+  <h2 class="section-title">My meetings</h2>
+  <div class="mt__list">
+    @for (m of mine(); track m.id) {
+      <ui-card [padded]="true">
+        <div class="mt__item">
+          <div class="mt__when">
+            <span class="mt__date">{{ prettyDate(m.date) }}</span>
+            <span class="mt__time">{{ m.time }} · {{ m.durationMins }} min</span>
+          </div>
+          <div class="mt__body">
+            <div class="mt__title-row">
+              <span class="mt__title">{{ m.title }}</span>
+              <ui-badge
+                [tone]="m.status === 'Scheduled' ? 'success' : m.status === 'Cancelled' ? 'danger' : 'neutral'"
+              >{{ m.status }}</ui-badge>
+            </div>
+            <span class="muted">{{ m.attendees || 'No attendees listed' }}</span>
+          </div>
+          <div class="mt__actions">
+            @if (m.status === 'Scheduled') {
+              <ui-button variant="ghost" (pressed)="startEdit(m)">Edit</ui-button>
+              <ui-button variant="ghost" (pressed)="markDone(m)">Mark done</ui-button>
+              <ui-button variant="danger" (pressed)="cancelling.set(m)">Cancel</ui-button>
+            }
+          </div>
+        </div>
+      </ui-card>
+    } @empty {
+      <ui-card><p class="muted">You have no meetings. Schedule one above.</p></ui-card>
+    }
+  </div>
+
+  @if (others().length) {
+    <h2 class="section-title">Other meetings in the workspace</h2>
+    <ui-card [padded]="false">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>When</th><th>Title</th><th>Attendees</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            @for (m of othersPageItems(); track m.id) {
+              <tr>
+                <td>{{ prettyDate(m.date) }} {{ m.time }}</td>
+                <td class="strong">{{ m.title }}</td>
+                <td class="muted">{{ m.attendees }}</td>
+                <td>{{ m.status }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <ui-paginator
+        [total]="others().length"
+        [pageSize]="othersSize"
+        [(page)]="othersPage"
+      />
+    </ui-card>
+  }
+</div>
+
+@if (editing(); as f) {
+  <ui-modal
+    [title]="f.id ? 'Edit meeting' : 'Schedule meeting'"
+    (closed)="editing.set(null)"
+  >
+    <form class="form" (ngSubmit)="save()">
+      <label class="field">
+        <span class="field__label">Title</span>
+        <input class="input" name="title" [(ngModel)]="f.title" required />
+      </label>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Date</span>
+          <input class="input" name="date" type="date" [(ngModel)]="f.date" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Time</span>
+          <input class="input" name="time" type="time" [(ngModel)]="f.time" required />
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Duration (minutes)</span>
+          <input class="input" name="dur" type="number" [(ngModel)]="f.durationMins" />
+        </label>
+        <label class="field">
+          <span class="field__label">Attendees</span>
+          <input class="input" name="att" [(ngModel)]="f.attendees" placeholder="Names, comma separated" />
+        </label>
+      </div>
+    </form>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(null)">Cancel</ui-button>
+      <ui-button (pressed)="save()">{{ f.id ? 'Save' : 'Schedule' }}</ui-button>
+    </div>
+  </ui-modal>
+}
+
+@if (cancelling(); as m) {
+  <ui-modal title="Cancel meeting" (closed)="cancelling.set(null)">
+    <p>Cancel <strong>{{ m.title }}</strong> on {{ prettyDate(m.date) }}?</p>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="cancelling.set(null)">Keep it</ui-button>
+      <ui-button variant="danger" (pressed)="confirmCancel()">Cancel meeting</ui-button>
+    </div>
+  </ui-modal>
+}

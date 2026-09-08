@@ -1,0 +1,53 @@
+<div class="page">
+  <header class="page__header">
+    <h1 class="page__title">Settings</h1>
+    <p class="page__subtitle">
+      Tenant configuration for
+      <strong>{{ tenantCtx.activeTenant()?.name }}</strong> — Admin only.
+    </p>
+  </header>
+
+  <ui-card
+    heading="Enabled modules"
+    subheading="Config-driven: the sidebar and routes update instantly as you toggle."
+  >
+    <ul class="settings__features">
+      @for (feature of features; track feature.key) {
+        <li class="settings__feature">
+          <div class="settings__feature-info">
+            <span class="settings__feature-name">
+              {{ feature.label }}
+              @if (feature.locked) {
+                <ui-badge tone="neutral">locked</ui-badge>
+              }
+            </span>
+            <span class="settings__feature-desc">{{ feature.description }}</span>
+          </div>
+          <label class="settings__switch">
+            <input
+              type="checkbox"
+              [checked]="isEnabled(feature.key)"
+              [disabled]="feature.locked"
+              (change)="onToggle(feature.key, $event)"
+            />
+            <span class="settings__slider" aria-hidden="true"></span>
+            <span class="settings__switch-text">
+              {{ isEnabled(feature.key) ? 'On' : 'Off' }}
+            </span>
+          </label>
+        </li>
+      }
+    </ul>
+  </ui-card>
+
+  <ui-card heading="Branding" subheading="Drawn from the tenant record">
+    <div class="settings__branding">
+      <span
+        class="settings__swatch"
+        [style.background]="tenantCtx.activeTenant()?.branding?.primary ?? ''"
+        aria-hidden="true"
+      ></span>
+      <code>{{ tenantCtx.activeTenant()?.branding?.primary ?? '' }}</code>
+    </div>
+  </ui-card>
+</div>

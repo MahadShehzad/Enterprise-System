@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.ep__tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ep__tab {
+  padding: 0.6rem 1rem;
+  font-weight: 650;
+  color: var(--color-ink-70);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ep__tab:hover {
+  color: var(--color-ink);
+}
+
+.ep__tab--active {
+  color: var(--c-clay-800);
+  border-bottom-color: var(--c-clay);
+}
+
+.ep__summary {
+  margin-bottom: 1.5rem;
+}
+
+.ep__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ep__section-head .section-title {
+  margin-bottom: 0.75rem;
+}
+
+.ep__big {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 850;
+}
+
+.ep__leave-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.ep__leave-head .ep__summary {
+  flex: 1;
+  min-width: 260px;
+}
+
+.ep__slip {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ep__slip div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--color-line);
+}
+
+.ep__slip dt {
+  color: var(--color-ink-70);
+}
+
+.ep__slip dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.ep__slip-net {
+  font-size: 1.15rem;
+}
+
+.ep__slip-net dt,
+.ep__slip-net dd {
+  color: var(--color-ink);
+  font-weight: 850;
+}

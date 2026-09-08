@@ -1,0 +1,120 @@
+<div class="page">
+  <header class="page__header pr__header">
+    <div>
+      <h1 class="page__title">Projects</h1>
+      <p class="page__subtitle">Track delivery, status and team assignments.</p>
+    </div>
+    <div class="row-actions">
+      <ui-button variant="ghost" (pressed)="exportCsv()">Export CSV</ui-button>
+      <ui-button (pressed)="startAdd()">New project</ui-button>
+    </div>
+  </header>
+
+  @if (toast()) {
+    <p class="toast" role="status">{{ toast() }}</p>
+  }
+
+  <div class="pr__grid">
+    @for (p of pageItems(); track p.id) {
+      <ui-card [padded]="true">
+        <div class="pr__top">
+          <div>
+            <span class="pr__name">{{ p.name }}</span>
+            <span class="muted">{{ p.client }}</span>
+          </div>
+          <ui-badge [tone]="tone(p.status)">{{ p.status }}</ui-badge>
+        </div>
+
+        <div class="pr__progress">
+          <div class="bar"><div class="bar__fill" [style.width.%]="p.progress"></div></div>
+          <span class="pr__pct">{{ p.progress }}%</span>
+        </div>
+
+        <dl class="pr__meta">
+          <div><dt>Due</dt><dd>{{ prettyDate(p.dueDate) }}</dd></div>
+          <div><dt>Team</dt><dd>{{ memberNames(p.memberIds) }}</dd></div>
+        </dl>
+
+        <div class="row-actions pr__actions">
+          <ui-button variant="ghost" (pressed)="startEdit(p)">Edit</ui-button>
+          <ui-button variant="danger" (pressed)="deleting.set(p)">Delete</ui-button>
+        </div>
+      </ui-card>
+    } @empty {
+      <ui-card><p class="muted">No projects yet. Create one above.</p></ui-card>
+    }
+  </div>
+
+  @if (projects().length > pageSize) {
+    <ui-card [padded]="false">
+      <ui-paginator [total]="projects().length" [pageSize]="pageSize" [(page)]="page" />
+    </ui-card>
+  }
+</div>
+
+@if (editing(); as f) {
+  <ui-modal
+    [title]="f.id ? 'Edit project' : 'New project'"
+    (closed)="editing.set(null)"
+  >
+    <form class="form" (ngSubmit)="save()">
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Project name</span>
+          <input class="input" name="name" [(ngModel)]="f.name" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Client</span>
+          <input class="input" name="client" [(ngModel)]="f.client" />
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Status</span>
+          <select class="select" name="status" [(ngModel)]="f.status">
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Progress (%)</span>
+          <input class="input" name="progress" type="number" min="0" max="100" [(ngModel)]="f.progress" />
+        </label>
+      </div>
+      <label class="field">
+        <span class="field__label">Due date</span>
+        <input class="input" name="due" type="date" [(ngModel)]="f.dueDate" />
+      </label>
+      <div class="field">
+        <span class="field__label">Team members</span>
+        <div class="pr__members">
+          @for (c of candidates(); track c.id) {
+            <label class="pr__member">
+              <input
+                type="checkbox"
+                [checked]="f.memberIds.includes(c.id)"
+                (change)="toggleMember(c.id, $any($event.target).checked)"
+              />
+              <span>{{ c.name }} · {{ c.position }}</span>
+            </label>
+          }
+        </div>
+      </div>
+    </form>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(null)">Cancel</ui-button>
+      <ui-button (pressed)="save()">{{ f.id ? 'Save' : 'Create' }}</ui-button>
+    </div>
+  </ui-modal>
+}
+
+@if (deleting(); as p) {
+  <ui-modal title="Delete project" (closed)="deleting.set(null)">
+    <p>Delete <strong>{{ p.name }}</strong>? This cannot be undone.</p>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="deleting.set(null)">Keep</ui-button>
+      <ui-button variant="danger" (pressed)="confirmDelete()">Delete</ui-button>
+    </div>
+  </ui-modal>
+}

@@ -1,0 +1,37 @@
+:host {
+  display: block;
+}
+
+.reports__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.reports__kpis {
+  margin-bottom: 1.35rem;
+}
+
+.reports__kpi {
+  margin: 0 0 0.5rem;
+  font-size: 1.9rem;
+  font-weight: 850;
+}
+
+.reports__table {
+  display: block;
+}
+
+.reports__sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.reports__sub .section-title {
+  margin-bottom: 0;
+}

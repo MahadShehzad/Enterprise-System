@@ -1,0 +1,167 @@
+<div class="page">
+  <header class="page__header users__header">
+    <div>
+      <h1 class="page__title">Employees</h1>
+      <p class="page__subtitle">
+        Directory for the active tenant. Managers can edit; Admins can add and
+        remove.
+      </p>
+    </div>
+    <div class="row-actions">
+      <ui-button variant="ghost" (pressed)="exportCsv()">Export CSV</ui-button>
+      <span *appHasRole="'Admin'">
+        <ui-button (pressed)="startAdd()">Add employee</ui-button>
+      </span>
+    </div>
+  </header>
+
+  @if (toast()) {
+    <p class="users__toast" role="status">{{ toast() }}</p>
+  }
+
+  <ui-card [padded]="false">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th class="ta-end" *appHasRole="['Manager', 'Admin']">Salary</th>
+            <th class="ta-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (emp of pageItems(); track emp.id) {
+            <tr>
+              <td class="strong">{{ emp.name }}</td>
+              <td>{{ emp.email }}</td>
+              <td>{{ deptName(emp.departmentId) }}</td>
+              <td>{{ emp.role }}</td>
+              <td>
+                <ui-badge
+                  [tone]="emp.status === 'Active' ? 'success' : emp.status === 'Invited' ? 'warning' : 'danger'"
+                >{{ emp.status }}</ui-badge>
+              </td>
+              <td class="ta-end" *appHasRole="['Manager', 'Admin']">
+                {{ money(emp.salary) }}
+              </td>
+              <td class="ta-end">
+                <div class="users__row-actions">
+                  <span *appHasRole="'Viewer'" class="users__readonly">Read only</span>
+                  <span *appHasRole="'Employee'" class="users__readonly">Read only</span>
+                  <ui-button
+                    *appHasRole="['Manager', 'Admin']"
+                    variant="ghost"
+                    (pressed)="startEdit(emp)"
+                  >Edit</ui-button>
+                  <ui-button
+                    *appHasRole="'Admin'"
+                    variant="danger"
+                    (pressed)="deleting.set(emp)"
+                  >Delete</ui-button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td class="table__empty" colspan="7">No employees in this tenant.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <ui-paginator [total]="people().length" [pageSize]="pageSize" [(page)]="page" />
+  </ui-card>
+
+  <p class="users__hint">
+    <ui-badge tone="neutral">RBAC</ui-badge>
+    Sign in as each role to see how the actions change.
+  </p>
+</div>
+
+@if (editing(); as form) {
+  <ui-modal
+    [title]="form.id ? 'Edit employee' : 'Add employee'"
+    (closed)="editing.set(null)"
+  >
+    <form class="form" (ngSubmit)="saveEdit()" id="employee-form">
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Full name</span>
+          <input class="input" name="name" [(ngModel)]="form.name" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Email</span>
+          <input class="input" name="email" type="email" [(ngModel)]="form.email" required />
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Position</span>
+          <input class="input" name="position" [(ngModel)]="form.position" />
+        </label>
+        <label class="field">
+          <span class="field__label">Department</span>
+          <select class="select" name="dept" [(ngModel)]="form.departmentId">
+            @for (d of departments(); track d.id) {
+              <option [value]="d.id">{{ d.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Role</span>
+          <select class="select" name="role" [(ngModel)]="form.role">
+            @for (r of roles; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Status</span>
+          <select class="select" name="status" [(ngModel)]="form.status">
+            @for (s of statuses; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      <div class="form__row">
+        <label class="field">
+          <span class="field__label">Salary (PKR / year)</span>
+          <input class="input" name="salary" type="number" [(ngModel)]="form.salary" />
+        </label>
+        <label class="field">
+          <span class="field__label">Phone</span>
+          <input class="input" name="phone" [(ngModel)]="form.phone" />
+        </label>
+      </div>
+      <label class="field">
+        <span class="field__label">Location</span>
+        <input class="input" name="location" [(ngModel)]="form.location" />
+      </label>
+    </form>
+
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(null)">Cancel</ui-button>
+      <ui-button type="submit" (pressed)="saveEdit()">
+        {{ form.id ? 'Save changes' : 'Add employee' }}
+      </ui-button>
+    </div>
+  </ui-modal>
+}
+
+@if (deleting(); as emp) {
+  <ui-modal title="Remove employee" (closed)="deleting.set(null)">
+    <p>
+      Remove <strong>{{ emp.name }}</strong> ({{ emp.email }}) from the directory?
+      This cannot be undone.
+    </p>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="deleting.set(null)">Keep</ui-button>
+      <ui-button variant="danger" (pressed)="confirmDelete()">Remove</ui-button>
+    </div>
+  </ui-modal>
+}

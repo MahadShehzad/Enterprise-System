@@ -1,0 +1,88 @@
+<div class="page">
+  <header class="page__header reports__header">
+    <div>
+      <h1 class="page__title">Reports</h1>
+      <p class="page__subtitle">
+        Growth and workforce reporting for {{ tenantName() }}.
+      </p>
+    </div>
+    <div class="row-actions">
+      <ui-button variant="ghost" (pressed)="exportMonthly()">Export growth CSV</ui-button>
+      <ui-button (pressed)="exportEmployees()">Export employees CSV</ui-button>
+    </div>
+  </header>
+
+  <div class="grid grid--stats reports__kpis">
+    <ui-card heading="Quarter revenue">
+      <p class="reports__kpi">$276.8k</p>
+      <ui-badge tone="success">▲ 8.4% QoQ</ui-badge>
+    </ui-card>
+    <ui-card heading="New sign-ups">
+      <p class="reports__kpi">802</p>
+      <ui-badge tone="success">▲ 7.1% QoQ</ui-badge>
+    </ui-card>
+    <ui-card heading="Headcount">
+      <p class="reports__kpi">{{ totals().headcount }}</p>
+      <ui-badge tone="neutral">{{ deptRows().length }} departments</ui-badge>
+    </ui-card>
+    <ui-card heading="Annual payroll">
+      <p class="reports__kpi">{{ money(totals().payroll) }}</p>
+      <ui-badge tone="warning">planning input</ui-badge>
+    </ui-card>
+  </div>
+
+  <ui-card heading="Monthly growth" [padded]="false" class="reports__table">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th class="ta-end">Sign-ups</th>
+            <th class="ta-end">Revenue</th>
+            <th class="ta-end">Churn</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of months; track m.period) {
+            <tr>
+              <td class="strong">{{ m.period }}</td>
+              <td class="ta-end">{{ m.signups }}</td>
+              <td class="ta-end">$ {{ (m.revenue / 1000).toFixed(1) }}k</td>
+              <td class="ta-end">{{ m.churn }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </ui-card>
+
+  <div class="reports__sub">
+    <h2 class="section-title">Headcount by department</h2>
+    <ui-button variant="ghost" (pressed)="exportHeadcount()">Export headcount CSV</ui-button>
+  </div>
+
+  <ui-card [padded]="false">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th class="ta-end">Headcount</th>
+            <th class="ta-end">Annual payroll</th>
+            <th class="ta-end">Avg. salary</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of deptRows(); track d.department) {
+            <tr>
+              <td class="strong">{{ d.department }}</td>
+              <td class="ta-end">{{ d.headcount }}</td>
+              <td class="ta-end">{{ money(d.payroll) }}</td>
+              <td class="ta-end">{{ money(d.avgSalary) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </ui-card>
+</div>

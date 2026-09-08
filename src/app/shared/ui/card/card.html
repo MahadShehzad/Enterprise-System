@@ -1,0 +1,15 @@
+<section class="card">
+  @if (heading() || subheading()) {
+    <header class="card__head">
+      @if (heading()) {
+        <h3 class="card__title">{{ heading() }}</h3>
+      }
+      @if (subheading()) {
+        <p class="card__subtitle">{{ subheading() }}</p>
+      }
+    </header>
+  }
+  <div class="card__body" [class.card__body--padded]="padded()">
+    <ng-content />
+  </div>
+</section>

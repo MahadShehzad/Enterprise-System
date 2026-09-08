@@ -1,0 +1,74 @@
+<div class="page">
+  <header class="page__header dep__header">
+    <div>
+      <h1 class="page__title">Departments</h1>
+      <p class="page__subtitle">
+        {{ rows().length }} departments · {{ employees().length }} employees ·
+        {{ money(totalPayroll()) }} annual payroll
+      </p>
+    </div>
+    <div class="row-actions">
+      <ui-button variant="ghost" (pressed)="exportCsv()">Export CSV</ui-button>
+      <ui-button (pressed)="startAdd()">Add department</ui-button>
+    </div>
+  </header>
+
+  @if (toast()) {
+    <p class="toast" role="status">{{ toast() }}</p>
+  }
+
+  <div class="dep__grid">
+    @for (d of rows(); track d.id) {
+      <ui-card [heading]="d.name" [subheading]="'Lead: ' + d.lead">
+        <div class="dep__stats">
+          <div>
+            <span class="dep__stat-value">{{ d.headcount }}</span>
+            <span class="dep__stat-label">headcount</span>
+          </div>
+          <div>
+            <span class="dep__stat-value">{{ money(d.payroll) }}</span>
+            <span class="dep__stat-label">payroll / yr</span>
+          </div>
+        </div>
+
+        <ul class="dep__people">
+          @for (p of d.people; track p.id) {
+            <li>
+              <span class="strong">{{ p.name }}</span>
+              <span class="muted">{{ p.position }}</span>
+              <span class="ta-end">{{ money(p.salary) }}</span>
+            </li>
+          } @empty {
+            <li class="muted">No employees assigned.</li>
+          }
+        </ul>
+
+        <ui-button variant="ghost" (pressed)="startEdit(d.id, d.name, d.lead)">
+          Edit department
+        </ui-button>
+      </ui-card>
+    }
+  </div>
+</div>
+
+@if (editing(); as form) {
+  <ui-modal
+    [title]="form.id ? 'Edit department' : 'Add department'"
+    (closed)="editing.set(null)"
+  >
+    <form class="form" (ngSubmit)="save()">
+      <label class="field">
+        <span class="field__label">Department name</span>
+        <input class="input" name="name" [(ngModel)]="form.name" required />
+      </label>
+      <label class="field">
+        <span class="field__label">Department lead</span>
+        <input class="input" name="lead" [(ngModel)]="form.lead" />
+      </label>
+    </form>
+    <div modalFooter>
+      <ui-button variant="ghost" (pressed)="editing.set(null)">Cancel</ui-button>
+      <ui-button (pressed)="save()">{{ form.id ? 'Save' : 'Add' }}</ui-button>
+    </div>
+  </ui-modal>
+}

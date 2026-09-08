@@ -1,0 +1,128 @@
+:host {
+  display: block;
+  animation: fade-up 0.55s var(--ease-out) both;
+}
+
+.stat {
+  --stat-fg: #ffffff;
+  position: relative;
+  padding: 1.3rem 1.4rem 1.4rem;
+  border-radius: var(--radius-md);
+  color: var(--stat-fg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  min-height: 132px;
+  transition:
+    transform 0.24s var(--ease-out),
+    box-shadow 0.24s var(--ease-out);
+}
+
+.stat:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(59, 42, 27, 0.22);
+}
+
+:host(.stat-host--clickable) {
+  cursor: pointer;
+}
+
+:host(.stat-host--clickable) .stat:hover {
+  transform: translateY(-6px);
+}
+
+:host(.stat-host--clickable):focus-visible {
+  outline: 3px solid var(--c-clay-800);
+  outline-offset: 3px;
+  border-radius: var(--radius-md);
+}
+
+.stat__more {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s var(--ease-out);
+}
+
+:host(.stat-host--clickable) .stat:hover .stat__more,
+:host(.stat-host--clickable):focus-visible .stat__more {
+  opacity: 0.95;
+  transform: none;
+}
+
+/* diagonal sheen sweep on hover */
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+
+.stat:hover::before {
+  animation: sheen 0.9s var(--ease-out);
+}
+
+.stat--brand {
+  background: var(--gradient-brand);
+}
+
+.stat--mint {
+  background: var(--gradient-mint);
+  --stat-fg: #3b2a1b;
+}
+
+.stat--peach {
+  background: var(--gradient-peach);
+  --stat-fg: #3b2a1b;
+}
+
+.stat--pink {
+  background: var(--gradient-pink);
+  --stat-fg: #3b2a1b;
+}
+
+.stat__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.stat__label {
+  font-size: 0.92rem;
+  font-weight: 650;
+  opacity: 0.92;
+}
+
+.stat__icon {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.stat__value {
+  margin-top: 0.65rem;
+  font-size: 2.15rem;
+  font-weight: 850;
+  letter-spacing: -0.015em;
+}
+
+.stat__delta {
+  margin-top: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.95;
+}
