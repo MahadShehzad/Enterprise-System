@@ -6,7 +6,7 @@ signals, zoneless) + **ASP.NET Core 10 Web API** + **SQL Server** (EF Core).
 ## Architecture
 
 ```
-Angular SPA (:4200)  ──/api proxy──►  ASP.NET Core API (:5103)  ──EF Core──►  SQL Server  (AcmeAdmin db, instance SQLEXPRESS)
+Angular SPA (:4200)  --/api proxy-->  ASP.NET Core API (:5103)  --EF Core-->  SQL Server  (AcmeAdmin db, instance SQLEXPRESS)
 ```
 
 - `src/`      — Angular front end. `DataStoreService` loads everything from
@@ -38,7 +38,7 @@ Change it there if your instance name or auth differs.
 ## Run
 
 ```bash
-npm run dev        # API (:5103) + Angular (:4200) together  → http://localhost:4200
+npm run dev        # API (:5103) + Angular (:4200) together  -> http://localhost:4200
 # or separately:
 npm run api        # dotnet run --project server
 npm start          # ng serve  (proxies /api to :5103)
@@ -54,9 +54,9 @@ npm start          # ng serve  (proxies /api to :5103)
 - **RBAC** — roles `Admin` / `Manager` / `Employee` / `Viewer` (hierarchical).
   - `AuthService` — real **email + password** login, persisted in sessionStorage.
   - `*appHasRole` structural directive hides UI per role.
-  - `roleGuard` + `featureGuard` (`CanActivateFn`) block navigation → `/app/forbidden`.
-- **Central mutable store** (`DataStoreService`) — every edit / add / delete is real
-  and reflects everywhere immediately; state is persisted to sessionStorage.
+  - `roleGuard` + `featureGuard` (`CanActivateFn`) block navigation -> `/app/forbidden`.
+- **Central store** (`DataStoreService`) — every edit / add / delete round-trips
+  to the API and reflects everywhere immediately.
 - **Employees** (`/app/users`) — Manager can **edit**, Admin can **add / edit / delete**
   (real modal forms + confirm dialog).
 - **Departments** (`/app/departments`, Admin) — headcount, per-department payroll,
@@ -79,7 +79,7 @@ npm start          # ng serve  (proxies /api to :5103)
   animated login art). Every interactive element shows a pointer cursor. All motion
   respects `prefers-reduced-motion`.
 - **Pagination** — reusable `ui-paginator` on the Employees, My Team, leave-approvals,
-  Meetings, Projects and attendance tables (page size 6–8, "1–10 of N" + page buttons).
+  Meetings, Projects and attendance tables (page size 6-8, "1-10 of N" + page buttons).
 - **CSV export** — real browser downloads (`Blob` + object URL, UTF-8 BOM) from
   Employees, Departments, My Team, Projects, Reports (growth / headcount / employees)
   and the Employee portal (attendance / payslips).
@@ -138,13 +138,13 @@ server/
 - `dotnet ef database update` creates `AcmeAdmin` in SQL Server; seeded row
   counts: employees 10, departments 5, users 4, tenants 3, meetings 4,
   projects 3, leave 4, attendance 12, payslips 6.
-- API: `POST /api/auth/login` returns the user; bad password → 400.
+- API: `POST /api/auth/login` returns the user; bad password -> 400.
   `GET /api/bootstrap` returns every collection with array-typed
-  `enabledFeatures` / `memberIds` / `tenantIds`. Employee create → update →
+  `enabledFeatures` / `memberIds` / `tenantIds`. Employee create -> update ->
   delete round-trips and the DB row count returns to 10.
-- Headless Chrome: log in (real API) → dashboard renders from the DB (headcount
-  10, payroll PKR 3,570,000); edit an employee in the modal → **reload the page
-  → the change is still there** (re-fetched from SQL Server); `SELECT Name FROM
+- Headless Chrome: log in (real API) -> dashboard renders from the DB (headcount
+  10, payroll PKR 3,570,000); edit an employee in the modal -> **reload the page,
+  the change is still there** (re-fetched from SQL Server); `SELECT Name FROM
   Employees` confirms the write.
 - `npm run build`, `npm test`, `dotnet build server` all pass.
 
@@ -156,5 +156,9 @@ server/
   session token; fine for a local demo, not production.
 - **Storybook / npm-publishable `@acme/shared-ui` / axe a11y audit** — shared
   components live as app code under `src/app/shared/ui`, not a separate library.
-#   E n t e r p r i s e - S y s t e m  
- 
+
+---
+
+See **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** for a full walkthrough — every folder,
+Angular concepts, the API, how the database connects, CSS/responsive logic, and a
+line-by-line trace of one feature.
