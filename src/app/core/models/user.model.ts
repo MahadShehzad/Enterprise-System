@@ -32,7 +32,7 @@ export type EditableProfile = Pick<
 > &
   Pick<UserProfile, 'title' | 'department' | 'phone' | 'location' | 'bio'>;
 
-/** Uppercase initials for avatar placeholders, e.g. "Ayesha Khan" -> "AK". */
+/** Uppercase initials for avatar placeholders, e.g. "Mahad Shehzad" -> "MS". */
 export function initialsOf(name: string): string {
   return name
     .split(/\s+/)

@@ -43,8 +43,8 @@ export const TENANTS: Tenant[] = [
 export const USERS: User[] = [
   {
     id: 'u-admin',
-    name: 'Ayesha Khan',
-    email: 'ayesha.khan@acme.pk',
+    name: 'Mahad Shehzad',
+    email: 'mahad@acme.pk',
     password: 'admin123',
     role: 'Admin',
     tenantIds: ['orient', 'packages', 'systems'],
@@ -53,7 +53,7 @@ export const USERS: User[] = [
       title: 'Head of Operations',
       department: 'Operations',
       phone: '+92 300 1234567',
-      location: 'Karachi, Pakistan',
+      location: 'Sialkot, Pakistan',
       bio: 'Oversees platform administration and tenant onboarding across all regions.',
       joinedAt: 'March 2023',
       avatarUrl: '',
@@ -204,7 +204,7 @@ export const NAV_CATALOGUE: NavItem[] = [
 /* -------------------------------------------------------------------------- */
 
 export const DEPARTMENTS: Department[] = [
-  { id: 'dept-ops', name: 'Operations', lead: 'Ayesha Khan', tenantId: 'orient' },
+  { id: 'dept-ops', name: 'Operations', lead: 'Mahad Shehzad', tenantId: 'orient' },
   { id: 'dept-sales', name: 'Sales', lead: 'Bilal Ahmed', tenantId: 'orient' },
   { id: 'dept-eng', name: 'Engineering', lead: 'Hassan Raza', tenantId: 'orient' },
   { id: 'dept-analytics', name: 'Analytics', lead: 'Sana Malik', tenantId: 'orient' },
@@ -213,10 +213,10 @@ export const DEPARTMENTS: Department[] = [
 
 export const EMPLOYEES: Employee[] = [
   {
-    id: 'e1', name: 'Ayesha Khan', email: 'ayesha.khan@acme.pk', role: 'Admin',
+    id: 'e1', name: 'Mahad Shehzad', email: 'mahad@acme.pk', role: 'Admin',
     status: 'Active', position: 'Head of Operations', departmentId: 'dept-ops',
     managerId: null, salary: 720000, phone: '+92 300 1234567',
-    location: 'Karachi', joinedAt: '2023-03-06', tenantId: 'orient',
+    location: 'Sialkot', joinedAt: '2023-03-06', tenantId: 'orient',
   },
   {
     id: 'e2', name: 'Bilal Ahmed', email: 'bilal.ahmed@acme.pk', role: 'Manager',
@@ -277,17 +277,17 @@ export const EMPLOYEES: Employee[] = [
 export const MEETINGS: Meeting[] = [
   {
     id: 'm1', title: 'Weekly leadership sync', date: '2026-09-10', time: '10:00',
-    durationMins: 45, attendees: 'Ayesha, Bilal, Maryam', ownerId: 'u-admin',
+    durationMins: 45, attendees: 'Mahad, Bilal, Maryam', ownerId: 'u-admin',
     status: 'Scheduled',
   },
   {
     id: 'm2', title: 'Q4 hiring plan review', date: '2026-09-12', time: '14:30',
-    durationMins: 60, attendees: 'Ayesha, Maryam', ownerId: 'u-admin',
+    durationMins: 60, attendees: 'Mahad, Maryam', ownerId: 'u-admin',
     status: 'Scheduled',
   },
   {
     id: 'm3', title: 'Vendor contract call', date: '2026-09-05', time: '16:00',
-    durationMins: 30, attendees: 'Ayesha, External', ownerId: 'u-admin',
+    durationMins: 30, attendees: 'Mahad, External', ownerId: 'u-admin',
     status: 'Completed',
   },
   {
