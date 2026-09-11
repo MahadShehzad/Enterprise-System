@@ -46,23 +46,27 @@ command chalata hai. Naam kuch bhi rakh sakte hain.
 
 ```json
 "scripts": {
-  "start": "ng serve",
+  "web":   "ng serve",
   "api":   "dotnet run --project server --launch-profile http",
-  "dev":   "concurrently -k -n api,web -c blue,green \"npm:api\" \"npm:start\""
+  "start": "concurrently -k -n api,web -c blue,green \"npm:api\" \"npm:web\"",
+  "dev":   "npm run start"
 }
 ```
 
-- `npm start`  → sirf Angular chalata hai (`ng serve`)
-- `npm run api` → sirf C# API chalata hai (`dotnet run`)
-- `npm run dev` → **`concurrently`** naam ki chhoti utility use karke **dono ek
-  saath** chalata hai, ek hi terminal me, colour-coded output ke saath.
+- `npm run web` → **sirf** Angular chalata hai (`ng serve`)
+- `npm run api` → **sirf** C# API chalata hai (`dotnet run`)
+- `npm start` (aur uska alias `npm run dev`) → **`concurrently`** naam ki
+  chhoti utility use karke **dono ek saath** chalata hai, ek hi terminal me,
+  colour-coded output ke saath.
   - `-k` = agar ek process mar jaye to doosra bhi kill kar do
   - `-n api,web` = output me labels
-  - `"npm:api" "npm:start"` = ye do scripts chalao
+  - `"npm:api" "npm:web"` = ye do scripts chalao
 
-To `npm run dev` yahan bas **"do commands ek saath chalao"** ka shortcut hai.
-Aap chahen to do alag terminal khol ke `npm run api` aur `npm start` bhi chala
-sakte hain — bilkul same baat.
+**`npm start` ab default hai** — isi wajah se ab har baar manually API start
+nahi karni parti: **VS Code ka "ng serve" Run/Debug button bhi isi ko chalata
+hai** (`.vscode/launch.json` → `preLaunchTask: "npm: start"`). To Run/F5 dabao
+ya terminal me `npm start` likho, **dono taraf se API + Angular ek saath** chal
+jaate hain. Sirf Angular chahiye ho (kabhi kabhaar) to `npm run web` use karo.
 
 `ng serve` khud kya karta hai:
 1. Angular code ko compile karta hai (TypeScript → JavaScript),
@@ -1164,12 +1168,13 @@ banata hai (migration ke through).
 ## 14. Commands Cheat Sheet
 
 ```bash
-# Development (dono ek saath)
-npm run dev
+# Development (dono ek saath — ye hi default hai, VS Code Run/F5 bhi ise chalata)
+npm start
+npm run dev         # bilkul same, alias
 
-# Alag alag
+# Alag alag chahiye ho to
 npm run api        # C# API  → :5103
-npm start          # Angular → :4200
+npm run web        # Angular → :4200
 
 # Build / test
 npm run build      # Angular production build
@@ -1191,16 +1196,20 @@ git add -A && git commit -m "message" && git push
 npm run stop        # = kill-port 4200 5103
 ```
 
-> **Note:** `npm run dev`, `npm start` aur `npm run api` ab har baar apna port
-> khud free karte hain (`predev` / `prestart` / `preapi` hooks `kill-port`
-> chalate hain). "Port already in use" wala error is se khatm ho jaana chahiye.
+> **Note:** `npm start` / `npm run dev` / `npm run web` / `npm run api` ab har
+> baar apna port khud free karte hain (`prestart` / `preweb` / `preapi` hooks
+> `kill-port` chalate hain). "Port already in use" wala error is se khatm ho
+> jaana chahiye.
 
 ---
 
 ## 15. Common Sawal
 
-**Q: `ng serve` aur `npm run dev` me farq?**
-`ng serve` sirf Angular. `npm run dev` = `concurrently` se Angular + C# API dono.
+**Q: `ng serve` aur `npm start` me farq?**
+`ng serve` (ab `npm run web` se chalta) sirf Angular. `npm start` (= `npm run
+dev`) = `concurrently` se Angular + C# API **dono ek saath**, aur VS Code ka
+Run/F5 button bhi yehi chalata hai — isliye API manually start karne ki
+zaroorat nahi rahi.
 
 **Q: Browser SQL Server se connect nahi hota?**
 Nahi. Browser sirf HTTP jaanta. API (C#) SQL Server se connect hoti, browser
@@ -1212,12 +1221,12 @@ API se JSON leta.
 
 **Q: `npm install` ke baad app kyun nahi chali?**
 Pehle SQL Server chahiye (`MSSQL$SQLEXPRESS` service running), phir
-`npm run db:update` se DB banao, phir `npm run dev`.
+`npm run db:update` se DB banao, phir `npm start`.
 
 **Q: Sirf frontend GitHub se clone karke chale?**
 Nahi — `server/` bhi clone hota hai. Bas `.NET 10 SDK` + `SQL Server Express`
 chahiye, phir `dotnet tool install --global dotnet-ef`, `npm run db:update`,
-`npm install`, `npm run dev`.
+`npm install`, `npm start`.
 
 **Q: Naya field add karna hai (e.g. Employee me `startDate`)?**
 1. `server/Models/Entities.cs` → `Employee` me `public string StartDate {...}`

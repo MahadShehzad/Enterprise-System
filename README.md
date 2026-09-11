@@ -38,15 +38,19 @@ Change it there if your instance name or auth differs.
 ## Run
 
 ```bash
-npm run dev        # API (:5103) + Angular (:4200) together  -> http://localhost:4200
-# or separately:
+npm start          # API (:5103) + Angular (:4200) together  -> http://localhost:4200
+npm run dev        # same as npm start (alias)
+# or run just one side:
 npm run api        # dotnet run --project server
-npm start          # ng serve  (proxies /api to :5103)
+npm run web        # ng serve only (proxies /api to :5103)
 npm run stop       # free ports 4200 + 5103 if something is stuck
 ```
 
-`dev` / `start` / `api` each free their own port first (`kill-port` in a
-`pre*` hook), so a leftover `ng serve` process no longer causes
+`npm start` is the default command — it's also what VS Code's "ng serve" Run/
+Debug launch config uses (`preLaunchTask: "npm: start"`), so pressing Run/F5
+starts the API and Angular together automatically; you never need to start
+the API by hand. `start` / `web` / `api` each free their own port first
+(`kill-port` in a `pre*` hook), so a leftover process no longer causes
 "Port 4200 already in use".
 
 ## What works
